@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Document</title>
+        <script src="http://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
+    </head>
+    <body>
+        <button id="btn">点击我</button>
+        <!-- 同理script和img标签的src和link标签的href也会发送一个get请求去请求静态资源。那么我们通过这点，是不是发现了点什么，这些标签的src和link属性，并没有受同源策略的限制。说到这里jsonp的实现原理就浮出水面了。
+                
+                jsonp就是使用同源策略这一“漏洞”，实现的跨域请求（这也是jsonp跨域只能用get请求的原因所在）。想象一下，既然是个get请求，那么服务端一定可以接收到，并做出反馈。ok，知道这两点之后，我们开始具体使用jsonp进行跨域请求。
+                
+                JSONP跨域实现：
+                根据上边所说的，我们要用过利用srcipt标签的src属性来实现，那么我们如何做呢，我们来看一段简单的代码，为了方便，我这里使用jQuery：
+                $('#btn').click(function(){
+                			var frame = document.createElement('script');
+                			frame.src = 'http://localhost:3000/article-list?name=leo&age=30&callback=func';
+                			$('body').append(frame);
+                		});
+                可以看到，让我们点击按钮的时候，创建了一个script标签(即会发送一个get请求到src指向的地址,注意：这里必须使用scipt标签，否则返回的数据不会被当作js执行)，src地址是"localhost:3000/article-list",这个src地址，就是我们请求的服务端接口。注意，这里我们有是那个参数，name,age和callback，name和age不说了，这跟我们平时普通的get请求参数无异。主要说下callback这个参数，callback参数就是核心所在。为什么要定义callback呢？首先我们知道，这个get请求已经被发出去了，那么我们如何接口请求回来的数据呢，callback=func则可以帮我们做这件事。我们继续看下边的代码  -->
+
+        <script>
+            $('#btn').click(function () {
+                var frame = document.createElement('script');
+                frame.src = 'http://localhost:3000/jsonp?name=leo&age=30&callback=func';
+                $('body').append(frame);
+            });
+            function func(res) {
+                alert(res.message + res.name + '你已经' + res.age + '岁了');
+            }
+        </script>
+        <!-- 
+        接下来，我们看服务端应该如何实现：
+        router.get('/article-list', (req, res) => {
+          console.log(req.query, '123');
+          let data = {
+            message: 'success!',
+            name: req.query.name,
+            age: req.query.age
+          }
+          data = JSON.stringify(data)
+          res.end('func(' + data + ')');
+                 -->
+
+    </body>
+</html>
