@@ -64,17 +64,16 @@ def robot_navigation(grid: List[List[int]], k: int) -> bool:
     directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]  # 定义机器人可以移动的方向：右、下、左、上
     
     # 队列用于广度优先搜索，初始位置为左上角(0, 0)，拆除的墙数为0，路径长度为0
-    queue = [(0, 0, 0, 0)]  # (row, col, walls_broken, path_length)
+    queue = [(0, 0, 0)]  # (row, col, walls_broken, path_length)
     
     # 用于记录访问过的点、到达该点时拆除的墙数和路径长度
-    visited = {(0, 0): (0, 0)}  # (row, col) -> (walls_broken, path_length)
+    visited = {(0, 0): (0)}  # (row, col) -> (walls_broken, path_length)
     
     while queue:
-        r, c, walls_broken, path_length = queue.pop(0)  # 取出队列中的第一个元素
+        r, c, walls_broken = queue.pop(0)  # 取出队列中的第一个元素
 
         # 如果到达了右下角，返回 True 表示可以到达
         if r == rows - 1 and c == cols - 1:
-            print(f"Shortest path length: {path_length}")
             return True
 
         for dr, dc in directions:  # 遍历四个方向
@@ -82,18 +81,17 @@ def robot_navigation(grid: List[List[int]], k: int) -> bool:
 
             if 0 <= nr < rows and 0 <= nc < cols:  # 检查新的位置是否在地图的范围内
                 next_walls_broken = walls_broken + grid[nr][nc]  # 计算到达新位置需要拆除的墙数
-                next_path_length = path_length + 1  # 更新路径长度
 
                 # 如果新位置可以通过，并且拆除的墙数小于等于 k
                 if next_walls_broken <= k:
                     if (nr, nc) not in visited:  # 如果新位置未被访问过
-                        visited[(nr, nc)] = (next_walls_broken, next_path_length)  # 记录访问
-                        queue.append((nr, nc, next_walls_broken, next_path_length))  # 添加到队列中
+                        visited[(nr, nc)] = (next_walls_broken)  # 记录访问
+                        queue.append((nr, nc, next_walls_broken))  # 添加到队列中
                     else:  # 如果新位置已经访问过，比较是否更优
                         visited_walls_broken, visited_path_length = visited[(nr, nc)]
-                        if next_walls_broken < visited_walls_broken or (next_walls_broken == visited_walls_broken and next_path_length < visited_path_length):
-                            visited[(nr, nc)] = (next_walls_broken, next_path_length)
-                            queue.append((nr, nc, next_walls_broken, next_path_length))
+                        if next_walls_broken < visited_walls_broken or (next_walls_broken == visited_walls_broken):
+                            visited[(nr, nc)] = next_walls_broken
+                            queue.append((nr, nc, next_walls_broken))
 
     return False  # 如果搜索结束都没有找到路径，返回 False
 
